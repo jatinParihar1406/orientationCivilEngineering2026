@@ -43,14 +43,11 @@
     width:auto; height:auto; transform:translate(-50%,-50%);
     object-fit:cover;
     filter: grayscale(55%) saturate(160%) brightness(0.55) blur(1.5px) hue-rotate(175deg);
-    opacity:0.55;
+    opacity:1;
   }
   .video-bg::after{ /* blueprint tint + vignette */
     content:"";
     position:absolute; inset:0;
-    background:
-      radial-gradient(ellipse at 50% 0%, rgba(11,37,69,0.25), rgba(7,26,51,0.86) 70%),
-      linear-gradient(180deg, rgba(11,37,69,0.75), rgba(7,26,51,0.92));
   }
   .blueprint-grid{
     position:fixed; inset:0; z-index:1; pointer-events:none;
@@ -59,7 +56,7 @@
       linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size: 42px 42px;
     mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 75%);
-    opacity:0.5;
+    opacity:1;
   }
 
   /* ---------- LAYOUT SHELL ---------- */
@@ -282,7 +279,7 @@
        Kept heavily blurred + desaturated so it reads as ambient motion behind the frosted glass. -->
   <video autoplay muted loop playsinline
     onerror="this.style.display='none'"
-    src="background-video-HD.mp4">
+    src="video/background-video-HD.mp4">
   </video>
 </div>
 <div class="blueprint-grid"></div>
