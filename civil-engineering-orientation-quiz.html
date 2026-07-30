@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE BRIEF — Civil Engineering Orientation Quiz</title>
+<link rel="shortcut icon" href="bridge-silhouette-vector.png" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blueprint: #0B2545;
+    --blueprint-deep: #071a33;
+    --safety-orange: #FF6B35;
+    --rebar-yellow: #FFC857;
+    --concrete: #8D99AE;
+    --chalk: #EDF2F4;
+    --line: rgba(237,242,244,0.14);
+    --good: #4ADE80;
+    --bad: #FB6A6A;
+    --radius: 18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--chalk);
+    min-height:100vh;
+    overflow-x:hidden;
+    background: radial-gradient(ellipse at 20% 0%, #143761 0%, var(--blueprint) 45%, var(--blueprint-deep) 100%);
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ---------- VIDEO BACKGROUND ---------- */
+  .video-bg{
+    position:fixed; inset:0; width:100%; height:100%;
+    overflow:hidden; z-index:0;
+  }
+  .video-bg video{
+    position:absolute; top:50%; left:50%; min-width:100%; min-height:100%;
+    width:auto; height:auto; transform:translate(-50%,-50%);
+    object-fit:cover;
+    filter: grayscale(55%) saturate(160%) brightness(0.55) blur(1.5px) hue-rotate(175deg);
+    opacity:0.55;
+  }
+  .video-bg::after{ /* blueprint tint + vignette */
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(11,37,69,0.25), rgba(7,26,51,0.86) 70%),
+      linear-gradient(180deg, rgba(11,37,69,0.75), rgba(7,26,51,0.92));
+  }
+  .blueprint-grid{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 75%);
+    opacity:0.5;
+  }
+
+  /* ---------- LAYOUT SHELL ---------- */
+  .app{
+    position:relative; z-index:2;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding: 28px 16px;
+  }
+  .screen{ width:100%; max-width:720px; }
+  .hidden{ display:none !important; }
+
+  /* ---------- FROSTED GLASS CARD ---------- */
+  .glass{
+    background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid rgba(237,242,244,0.16);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+
+  /* ---------- INTRO ---------- */
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:3px; text-transform:uppercase;
+    font-size:12px; color:var(--rebar-yellow);
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:""; width:26px; height:2px; background:var(--rebar-yellow); display:inline-block; }
+  h1.title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size: clamp(28px, 6vw, 44px);
+    line-height:1.05;
+    margin: 14px 0 6px;
+  }
+  h1.title span{ color: var(--safety-orange); }
+  .subtitle{ color: var(--concrete); font-size:15px; line-height:1.5; max-width:52ch; }
+  .intro-card{ padding: 34px 30px; }
+  .spec-grid{
+    display:grid; grid-template-columns: repeat(3,1fr); gap:12px;
+    margin: 26px 0 28px;
+  }
+  .spec{
+    border:1px solid var(--line); border-radius:12px; padding:14px 12px;
+    text-align:center;
+  }
+  .spec b{ display:block; font-family:'Space Grotesk',sans-serif; font-size:22px; color:var(--rebar-yellow); }
+  .spec span{ font-size:11px; color:var(--concrete); font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:1px; }
+  .btn{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px;
+    color: var(--blueprint-deep); background: var(--rebar-yellow);
+    border:none; border-radius:12px; padding:15px 26px; cursor:pointer;
+    width:100%; letter-spacing:0.3px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    box-shadow: 0 8px 24px rgba(255,200,87,0.25);
+  }
+  .btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 28px rgba(255,200,87,0.35); }
+  .btn:active{ transform: translateY(0); }
+  .btn:focus-visible{ outline:3px solid var(--chalk); outline-offset:3px; }
+  .btn-ghost{
+    background:transparent; color:var(--chalk); border:1px solid var(--line);
+    box-shadow:none;
+  }
+  .btn-ghost:hover{ background: rgba(255,255,255,0.06); box-shadow:none; }
+  .btn-row{ display:flex; gap:12px; }
+  .field{ margin: 22px 0 20px; }
+  .field label{
+    display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:1px; color:var(--concrete); margin-bottom:8px;
+  }
+  .field input{
+    width:100%; font-family:'Inter',sans-serif; font-size:15px; color:var(--chalk);
+    background: rgba(255,255,255,0.06); border:1px solid var(--line); border-radius:12px;
+    padding:13px 14px; outline:none; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .field input::placeholder{ color: rgba(237,242,244,0.4); }
+  .field input:focus{ border-color: var(--rebar-yellow); background: rgba(255,255,255,0.09); }
+  .field .warn{ font-size:12px; color: var(--safety-orange); margin-top:6px; display:none; }
+  .field .warn.show{ display:block; }
+  .entry-id{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color: rgba(237,242,244,0.45);
+    letter-spacing:1px; margin-top:4px;
+  }
+  .sync-status{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.5px;
+    margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .sync-status .dot{ width:7px; height:7px; border-radius:50%; background:var(--concrete); flex:0 0 auto; }
+  .sync-status.ok .dot{ background:var(--good); }
+  .sync-status.err .dot{ background:var(--bad); }
+  .sync-status.pending .dot{ background:var(--rebar-yellow); animation: pulse 1s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* ---------- QUIZ HEADER ---------- */
+  .quiz-card{ padding: 24px 24px 28px; }
+  .quiz-top{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; gap:12px; flex-wrap:wrap;
+  }
+  .sheet-no{
+    font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--concrete);
+    letter-spacing:1px;
+  }
+  .sheet-no b{ color:var(--chalk); }
+  .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:1px; padding:5px 10px; border-radius:100px; border:1px solid var(--line);
+  }
+  .tag.basic{ color:#8FD3FF; border-color:rgba(143,211,255,0.4); }
+  .tag.picture{ color:#C7A6FF; border-color:rgba(199,166,255,0.4); }
+  .tag.deep{ color:var(--safety-orange); border-color:rgba(255,107,53,0.45); }
+
+  /* measuring-tape timer */
+  .tape{
+    position:relative; height:22px; border-radius:6px; overflow:hidden;
+    background: rgba(255,255,255,0.06); border:1px solid var(--line); margin-bottom:22px;
+  }
+  .tape-fill{
+    position:absolute; inset:0 auto 0 0; width:100%;
+    background: linear-gradient(90deg, var(--rebar-yellow), var(--safety-orange));
+    background-size: 22px 100%;
+    background-image: repeating-linear-gradient(90deg, rgba(11,37,69,0.55) 0 2px, transparent 2px 22px), linear-gradient(90deg, var(--rebar-yellow), var(--safety-orange));
+    transition: width 1s linear;
+  }
+  .tape-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; color:var(--blueprint-deep); font-weight:600;
+    mix-blend-mode: normal;
+  }
+  .tape.warn .tape-fill{ background-image: repeating-linear-gradient(90deg, rgba(11,37,69,0.55) 0 2px, transparent 2px 22px), linear-gradient(90deg, var(--bad), #ff2e2e); }
+
+  .qtext{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:20px;
+    line-height:1.35; margin: 4px 0 18px;
+  }
+
+  /* picture question image */
+  .figure{
+    position:relative; width:100%; aspect-ratio: 16/9; border-radius:12px; overflow:hidden;
+    margin-bottom:18px; border:1px solid var(--line);
+    background: linear-gradient(120deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  }
+  .figure img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .figure .skeleton{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:8px;
+    background: linear-gradient(100deg, rgba(255,255,255,0.04) 30%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+  .figure .skeleton svg{ width:44px; height:44px; opacity:0.5; }
+  .figure .skeleton span{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--concrete); letter-spacing:1px; text-transform:uppercase; }
+
+  /* options */
+  .options{ display:grid; gap:10px; margin-bottom:6px; }
+  .opt{
+    text-align:left; font-family:'Inter',sans-serif; font-size:15px; color:var(--chalk);
+    background: rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+  .opt:hover:not(.locked){ background: rgba(255,255,255,0.10); transform: translateX(2px); }
+  .opt:focus-visible{ outline:3px solid var(--rebar-yellow); outline-offset:2px; }
+  .opt .letter{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; width:24px; height:24px; border-radius:6px;
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
+  .opt.correct{ background: rgba(74,222,128,0.16); border-color: var(--good); }
+  .opt.correct .letter{ background: var(--good); border-color:var(--good); color:var(--blueprint-deep); }
+  .opt.wrong{ background: rgba(251,106,106,0.16); border-color: var(--bad); }
+  .opt.wrong .letter{ background: var(--bad); border-color:var(--bad); color:#2b0000; }
+  .opt.locked{ cursor:default; }
+  .opt.dim{ opacity:0.55; }
+
+  .feedback{
+    margin-top:16px; padding:14px 16px; border-radius:12px;
+    border:1px solid var(--line); background: rgba(255,255,255,0.05);
+    font-size:14px; line-height:1.5; color: var(--chalk);
+    display:none;
+  }
+  .feedback.show{ display:block; }
+  .feedback b.status-good{ color: var(--good); }
+  .feedback b.status-bad{ color: var(--bad); }
+  .feedback .fact{ display:block; margin-top:6px; color:var(--concrete); }
+
+  .next-row{ margin-top:18px; display:flex; justify-content:flex-end; }
+  .next-row .btn{ width:auto; padding:12px 22px; font-size:14px; }
+
+  /* ---------- RESULT ---------- */
+  .result-card{ padding: 38px 30px; text-align:center; }
+  .score-big{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:64px; line-height:1;
+    color: var(--rebar-yellow); margin: 6px 0 2px;
+  }
+  .score-sub{ color:var(--concrete); font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:1px; text-transform:uppercase; }
+  .verdict{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:16px 0 22px; color:var(--chalk); }
+  .breakdown{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-bottom:26px; }
+  .breakdown .spec b{ font-size:20px; }
+
+  footer.credit{
+    text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    color: rgba(237,242,244,0.35); margin-top:18px; letter-spacing:0.5px;
+  }
+
+  @media (max-width:480px){
+    .spec-grid, .breakdown{ grid-template-columns: repeat(3,1fr); gap:8px; }
+    .spec b{ font-size:17px; }
+    .intro-card, .result-card{ padding:26px 18px; }
+    .quiz-card{ padding:18px 16px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="video-bg">
+  <!-- NOTE: swap this src for your own campus / site-construction footage if you have one.
+       Kept heavily blurred + desaturated so it reads as ambient motion behind the frosted glass. -->
+  <video autoplay muted loop playsinline
+    onerror="this.style.display='none'"
+    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">
+  </video>
+</div>
+<div class="blueprint-grid"></div>
+
+<div class="app">
+
+  <!-- ================= INTRO ================= -->
+  <section class="screen" id="screen-intro">
+    <div class="glass intro-card">
+      <div class="eyebrow">New Student Orientation</div>
+      <h1 class="title">Site Brief: <span>Civil Engineering</span> Quiz</h1>
+      <p class="subtitle">20 questions, pulled fresh every attempt from a 100-question pool — fundamentals, iconic structures, and a couple of deep cuts. Get it wrong and we'll show you the correct answer before you move on.</p>
+
+      <div class="spec-grid">
+        <div class="spec"><b>20</b><span>Questions</span></div>
+        <div class="spec"><b>5:00</b><span>Total time</span></div>
+        <div class="spec"><b>10/8/2</b><span>Mix ratio</span></div>
+      </div>
+
+      <div class="field">
+        <label for="input-name">Your name</label>
+        <input type="text" id="input-name" placeholder="e.g. Priya Sharma" maxlength="60" autocomplete="name">
+        <div class="warn" id="name-warn">Enter your name to start — it's saved with your score.</div>
+      </div>
+
+      <button class="btn" id="btn-start">Start Quiz</button>
+      <div style="height:10px"></div>
+      <p class="subtitle" style="font-size:12px;">Mix: 10 fundamentals · 8 picture ID (bridges / buildings / tunnels) · 2 deep dive</p>
+    </div>
+  </section>
+
+  <!-- ================= QUIZ ================= -->
+  <section class="screen hidden" id="screen-quiz">
+    <div class="glass quiz-card">
+      <div class="quiz-top">
+        <div class="sheet-no">SHEET <b id="q-index">01</b> / 20</div>
+        <div class="tag" id="q-tag">BASIC</div>
+      </div>
+      <div class="tape" id="tape">
+        <div class="tape-fill" id="tape-fill" style="width:100%;"></div>
+        <div class="tape-label" id="tape-label">5:00</div>
+      </div>
+
+      <div id="figure-wrap"></div>
+      <div class="qtext" id="q-text">Loading question…</div>
+      <div class="options" id="q-options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="next-row hidden" id="next-row">
+        <button class="btn" id="btn-next">Next Question →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section class="screen hidden" id="screen-result">
+    <div class="glass result-card">
+      <div class="eyebrow" style="justify-content:center;">Site Inspection Complete</div>
+      <div class="score-big" id="score-big">0/20</div>
+      <div class="score-sub" id="score-time">Time used: 0:00</div>
+      <div class="entry-id" id="entry-id">Entry ID: —</div>
+      <div class="verdict" id="verdict">—</div>
+      <div class="sync-status pending" id="sync-status"><span class="dot"></span><span id="sync-text">Saving score…</span></div>
+      <div class="breakdown">
+        <div class="spec"><b id="score-basic">0/10</b><span>Fundamentals</span></div>
+        <div class="spec"><b id="score-picture">0/8</b><span>Picture ID</span></div>
+        <div class="spec"><b id="score-deep">0/2</b><span>Deep dive</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="btn-restart">Take It Again</button>
+      </div>
+    </div>
+    <footer class="credit">CIVIL ENGINEERING · NEW STUDENT ORIENTATION</footer>
+  </section>
+
+</div>
+
+<script>
+/* ======================================================================
+   QUESTION POOL — 100 total (50 basic / 40 picture / 10 deep dive)
+   ====================================================================== */
+
+// Each basic/deep item: [question, [4 options], correctIndex, short explanation]
+const BASIC = [
+["What does the grade 'M20' denote in concrete?", ["A mix with 20 MPa characteristic compressive strength","20% moisture content in the mix","Maximum 20 mm aggregate size","20 bags of cement per batch"], 0, "M stands for 'Mix' and the number is the characteristic compressive strength in MPa at 28 days."],
+["What is the typical water-cement ratio range for normal structural concrete?", ["0.4 to 0.6","0.1 to 0.2","0.8 to 1.0","1.2 to 1.5"], 0, "A lower w/c ratio generally gives higher strength, but enough water is needed for workability and hydration."],
+["What does the slump test measure?", ["Workability of fresh concrete","Compressive strength","Setting time","Long-term durability"], 0, "It's a quick, simple check of how workable (fluid) the fresh concrete mix is."],
+["Per IS 4031, what is the minimum initial setting time of ordinary Portland cement?", ["30 minutes","10 minutes","60 minutes","600 minutes"], 0, "This gives enough time to mix, transport and place the concrete before it starts to stiffen."],
+["What is the maximum final setting time allowed for OPC?", ["600 minutes (10 hours)","30 minutes","100 minutes","24 hours"], 0, "Beyond this, the cement should have fully set."],
+["Fine aggregate is defined as particles passing through which sieve?", ["4.75 mm sieve","75 micron sieve","20 mm sieve","10 mm sieve"], 0, "Anything retained on the 4.75 mm sieve is classified as coarse aggregate."],
+["Which surveying instrument measures both horizontal and vertical angles?", ["Theodolite","Dumpy level","Prismatic compass","Planimeter"], 0, "A theodolite (or total station) is used for precise angular measurement in both planes."],
+["What does a 'bench mark' in surveying refer to?", ["A point of known and fixed elevation","A property boundary pillar","A traffic control point","A drainage outlet"], 0, "Bench marks are reference points used to carry known elevations across a survey."],
+["What does a contour line on a map represent?", ["Points of equal elevation","Points of equal temperature","A property boundary","A soil classification zone"], 0, "Contours let you visualise the shape of the terrain on a flat map."],
+["Which test determines the plastic limit and liquid limit of a soil?", ["Atterberg limits test","Standard Proctor test","Sieve analysis","Falling head permeability test"], 0, "These 'consistency limits' describe how a fine-grained soil behaves at different moisture contents."],
+["The Standard Proctor test is used to determine which two soil properties together?", ["Maximum dry density and optimum moisture content","Bearing capacity and settlement","Shear strength and cohesion","Void ratio and porosity"], 0, "It's the basis for specifying compaction requirements on site."],
+["How is the bearing capacity of soil best defined?", ["The maximum load per unit area the soil can safely support", "The total weight of a soil sample","The natural water content of soil","The angle of repose of dry sand"], 0, "It's a key input for sizing any foundation."],
+["Which foundation type is typically used for high-rise buildings on weak or soft soil?", ["Pile foundation","Isolated column footing","Simple strip footing","No foundation, direct bearing"], 0, "Piles transfer heavy building loads down to stronger soil or rock layers, or via skin friction."],
+["A beam subjected to bending typically develops which combination of stresses across its depth?", ["Tensile on one face and compressive on the other","Only tensile stress throughout","Only shear stress throughout","Only torsional stress"], 0, "This is the basis of simple bending theory used in beam design."],
+["Which type of stress resists one layer of material sliding over an adjacent layer?", ["Shear stress","Tensile stress","Compressive stress","Thermal stress"], 0, "Shear stress acts tangential to a surface, unlike tensile or compressive stress which act normal to it."],
+["What does the 'Factor of Safety' in structural design primarily account for?", ["Uncertainties in loads and material strength","Aesthetic preferences","Construction speed","Labour cost variation"], 0, "It builds in a safety margin against the unknowns in real-world materials and loading."],
+["Members of a truss are primarily designed to carry which type of internal force?", ["Axial force (tension or compression) only","Bending moment only","Torsion only","Shear only"], 0, "Truss members are pin-jointed, so loads are ideally carried axially along each member."],
+["A cantilever beam is supported in what way?", ["Fixed at one end, free at the other","Simply supported at both ends","Supported at three points","Resting fully on the ground"], 0, "The fixed end must resist both the moment and the shear from the free end's load."],
+["In which bridge type do cables run directly from the tower to the deck to support it?", ["Cable-stayed bridge","Suspension bridge","Arch bridge","Truss bridge"], 0, "In a suspension bridge, by contrast, the deck hangs from vertical hangers off a main catenary cable."],
+["In a suspension bridge, how does deck load ultimately reach the towers?", ["Deck → hangers → main cable → towers", "Deck load goes straight to the piers","Deck load is carried by arch action to the ground","Deck load passes through a rigid truss only"], 0, "The main cable is the primary load path, anchored at each end and draped over the towers."],
+["Which of these is a typical rigid pavement material?", ["Cement concrete","Bituminous mix","Water Bound Macadam","Compacted gravel"], 0, "Rigid pavements rely on the flexural (slab) strength of the concrete layer."],
+["Why is 'camber' provided on a road's cross-section?", ["To drain rainwater off the surface","To increase vehicle speed","Purely for visual appearance","To reduce construction cost"], 0, "The slight cross-slope sheds water toward the road edges."],
+["A flexible pavement mainly derives its strength from what mechanism?", ["Grain-to-grain load transfer through the layers","Slab (flexural) action like a rigid plate","Tension in embedded reinforcement","Arch action across the span"], 0, "Loads are distributed through successive granular/bituminous layers down to the subgrade."],
+["Which test gives the CBR (California Bearing Ratio) value of a soil?", ["California Bearing Ratio test", "Concrete cube compressive strength test","Bitumen penetration test","Water quality (BOD) test"], 0, "CBR values are widely used to design flexible pavement thickness."],
+["What does BOD stand for in water/environmental engineering?", ["Biochemical Oxygen Demand","Biological Organic Density","Basic Oxygen Demand","Bio-Organic Discharge"], 0, "It measures the oxygen required by microorganisms to break down organic matter in water."],
+["What is the most essential requirement for water to be called 'potable'?", ["It must be free of pathogens and safe to drink","It must be cold","It must be colourless only","It must be carbonated"], 0, "Potability is fundamentally about health safety, not just appearance."],
+["Which unit process primarily removes suspended solids by gravity settling in water treatment?", ["Sedimentation","Chlorination","Aeration","Coagulant dosing"], 0, "Sedimentation tanks allow heavier particles to settle out before filtration."],
+["Why is chlorination carried out in water treatment?", ["To disinfect the water and kill pathogens","To remove turbidity","To soften hard water","To add oxygen only"], 0, "Chlorine is a widely used disinfectant to make water microbiologically safe."],
+["What is a 'datum' in surveying?", ["A reference level surface from which elevations are measured","A boundary line between two plots","A fixed compass bearing","A drainage channel"], 0, "Mean Sea Level is a commonly used datum for large-scale surveys."],
+["A Total Station essentially combines the functions of which two instruments?", ["A theodolite and an electronic distance meter (EDM)","A dumpy level and a compass","A GPS receiver and a camera","A drone and an inclinometer"], 0, "This lets it measure angles and distances simultaneously and compute coordinates directly."],
+["Which Indian Standard code covers the general design of plain and reinforced concrete structures?", ["IS 456","IS 800","IS 875","IS 1200"], 0, "IS 800 is for steel design, IS 875 is for design loads, and IS 1200 covers measurement of works."],
+["IS 800 in India primarily deals with the design of which type of structures?", ["Steel structures","Concrete structures","Timber structures","Masonry structures"], 0, "It is the Indian code of practice for general construction in steel."],
+["What does IS 875 primarily specify?", ["Design loads (dead, live, wind, etc.) for buildings","Concrete mix proportions","Steel section properties","Surveying procedures"], 0, "It's issued in parts covering dead loads, imposed loads, wind loads, snow loads, and load combinations."],
+["Which type of cement is preferred for mass concrete works like dams, to limit heat of hydration?", ["Low Heat Cement","Rapid Hardening Cement","White Cement","Coloured Cement"], 0, "Large concrete pours can crack from thermal stresses if heat of hydration isn't controlled."],
+["The 'fineness' of cement mainly affects which property?", ["Rate of hydration and early strength gain","The final colour of the cement","The bag weight","The aggregate size used"], 0, "Finer cement particles hydrate faster, giving quicker early strength."],
+["Which type of admixture increases the workability of concrete without adding extra water?", ["A plasticizer / superplasticizer","An accelerator","A retarder","A pigment"], 0, "Plasticizers disperse cement particles, improving flow at the same water content."],
+["Why is curing of concrete carried out after placing?", ["To retain moisture needed for continued cement hydration","To make the concrete heavier","To change its colour","To speed up formwork removal"], 0, "Inadequate curing leads to surface cracking and reduced strength gain."],
+["'Honeycombing' in concrete is typically caused by what?", ["Improper or insufficient compaction","Excessive curing","Using too little water","Using a very high slump mix"], 0, "Voids form when the concrete isn't properly vibrated/compacted around the reinforcement and formwork."],
+["What is the standard size of a common modular brick used in India?", ["190 x 90 x 90 mm","200 x 100 x 100 mm","250 x 120 x 60 mm","300 x 150 x 100 mm"], 0, "With a 10 mm mortar joint, this brick fits a 200 x 100 x 100 mm modular grid."],
+["Which type of surveying accounts for the curvature of the earth over large areas?", ["Geodetic surveying","Plane surveying","Cadastral surveying","Route surveying"], 0, "Plane surveying, by contrast, assumes the earth's surface is flat, which is fine for small areas."],
+["A 'traverse survey' is primarily used for what purpose?", ["Establishing boundary and control points using a series of connected lines","Measuring river discharge","Testing soil samples","Checking drinking water quality"], 0, "A closed or open traverse of linked survey lines is a classic method for control surveying."],
+["Loads caused by wind and earthquakes on a structure are generally classified as what type of load?", ["Lateral loads","Dead loads","Live loads","Snow loads"], 0, "Lateral loads act horizontally on a structure, unlike gravity (vertical) loads."],
+["What is the self-weight of a structure and its permanent fixtures called?", ["Dead load","Live load","Wind load","Seismic load"], 0, "Dead load is constant over the structure's life, unlike variable live loads."],
+["Moving or variable loads such as people, furniture, and vehicles are called what?", ["Live load","Dead load","Wind load","Snow load"], 0, "Live loads can change in magnitude and position over time."],
+["A long, slender column typically fails due to what phenomenon under axial load?", ["Buckling","Pure crushing","Shear failure only","Torsional failure"], 0, "Slenderness makes a column prone to sideways instability before the material itself crushes."],
+["What does the modulus of elasticity of a material primarily indicate?", ["Its stiffness (resistance to elastic deformation)","Its ultimate strength","Its density","Its colour or finish"], 0, "A higher modulus means the material deforms less for a given stress, within the elastic range."],
+["Which material property allows large plastic deformation before it fractures?", ["Ductility","Brittleness","Hardness","Permeability"], 0, "Ductile materials like mild steel can be drawn out and deform visibly before failure, giving warning signs."],
+["In surveying, elevations are generally measured with reference to what?", ["Mean Sea Level","The equator","The centre of the earth","The nearest riverbed"], 0, "Mean Sea Level (MSL) is the common vertical datum used across most national survey networks."],
+["Which piece of personal protective equipment is mandatory on a construction site for head protection?", ["A helmet (hard hat)","Gloves","Safety boots","Goggles"], 0, "Helmets protect against falling objects and are typically the first PPE item enforced on site."],
+["What does 'RCC' stand for in civil engineering?", ["Reinforced Cement Concrete","Rapid Curing Cement","Reinforced Clay Concrete","Regular Cement Compound"], 0, "Steel reinforcement is embedded in concrete to take up the tensile stresses concrete is weak in."]
+];
+
+const DEEP = [
+["The dramatic 1940 collapse of the Tacoma Narrows Bridge is the classic case study of what phenomenon?", ["Aeroelastic flutter causing resonant oscillation","Concrete shrinkage cracking","Soil liquefaction under the towers","Corrosion fatigue of the cables"], 0, "Wind-induced self-excited oscillations grew until the deck twisted itself apart — it reshaped how engineers study wind effects on bridges."],
+["In pre-stressed concrete, tendons are tensioned before/after casting mainly to achieve what?", ["Induce compressive stress that offsets tensile stress under service load","Reduce the concrete's self-weight","Speed up the curing process","Make the surface finish more uniform in colour"], 0, "By pre-compressing the concrete, cracking under tension is delayed or avoided, allowing longer, thinner spans."],
+["Which Indian Standard code governs earthquake-resistant design of structures?", ["IS 1893","IS 456","IS 800","IS 875"], 0, "IS 1893 (Part 1) lays out seismic zones and design criteria for buildings across India."],
+["Soil liquefaction during an earthquake typically occurs in what kind of ground condition?", ["Loose, saturated sandy soils","Dense, dry clay","Solid bedrock","Well-compacted gravel"], 0, "Shaking raises pore water pressure until the soil temporarily behaves like a liquid, losing bearing capacity."],
+["The structural system used in very tall buildings (like the Willis Tower) where several framed tubes are grouped together is called what?", ["A bundled tube system","A simple moment frame","A shear-wall-only system","A basic truss system"], 0, "Bundling tubes together increases lateral stiffness efficiently, letting the building go taller with less material."],
+["A shear wall in a building is primarily designed to resist which type of force?", ["Lateral forces from wind and earthquakes","Vertical gravity loads only","Thermal expansion of the slab","Water seepage through the foundation"], 0, "Shear walls act like deep, stiff vertical cantilevers that resist horizontal sway."],
+["'Base isolation' as an earthquake-resistant design strategy works by doing what?", ["Decoupling the building from ground motion using flexible bearings","Simply adding more columns","Increasing the total weight of the building","Deepening the foundation alone"], 0, "Flexible isolators absorb and reduce the earthquake energy transmitted into the superstructure."],
+["Cavitation damage on a dam's spillway surface is caused by what mechanism?", ["Rapid local pressure drops forming vapour bubbles that collapse violently","Excessive algae growth on the surface","Thermal cracking from sun exposure","Simple corrosion of embedded steel"], 0, "High-velocity flow over surface irregularities can drop local pressure enough to form and collapse vapour bubbles, eroding concrete."],
+["In modern construction management, what does BIM stand for?", ["Building Information Modeling","Basic Infrastructure Mapping","Bridge Integrity Monitoring","Building Inspection Method"], 0, "BIM creates a shared digital model used across design, construction, and facility management."],
+["Unlike a gravity dam, an arch dam transfers most of the water pressure to what?", ["The valley walls / abutments, via arch action","Its own weight alone","Deep foundation piles","It does not need to transfer load"], 0, "The dam's curved shape pushes load sideways into the surrounding rock, needing far less concrete than a gravity dam."]
+];
+
+// Picture questions: [wikipediaTitle, correctName, [3 distractor names], shortFact]
+const PICTURE = [
+["Howrah Bridge","Howrah Bridge, Kolkata",["Vidyasagar Setu","Bandra–Worli Sea Link","Pamban Bridge"],"A cantilever bridge over the Hooghly River — famously assembled with rivets, not a single nut or bolt."],
+["Bandra-Worli Sea Link","Bandra–Worli Sea Link, Mumbai",["Howrah Bridge","Pamban Bridge","Chenab Bridge"],"A cable-stayed sea bridge linking Bandra and Worli across the Arabian Sea."],
+["Vidyasagar Setu","Vidyasagar Setu, Kolkata",["Howrah Bridge","Signature Bridge","Bandra–Worli Sea Link"],"India's longest cable-stayed bridge when it opened, crossing the Hooghly River."],
+["Chenab Bridge","Chenab Railway Bridge, J&K",["Pamban Bridge","Vidyasagar Setu","Atal Tunnel"],"The world's highest railway bridge — its deck sits taller above the riverbed than the Eiffel Tower."],
+["Statue of Unity","Statue of Unity, Gujarat",["India Gate","Qutub Minar","Charminar"],"The world's tallest statue at 182 m, honouring Sardar Vallabhbhai Patel."],
+["Qutub Minar","Qutub Minar, Delhi",["Charminar","Statue of Unity","Lotus Temple"],"A 73 m fluted red-sandstone minaret — the tallest brick minaret in the world."],
+["India Gate","India Gate, Delhi",["Charminar","Qutub Minar","Statue of Unity"],"A 42 m war memorial arch designed by Sir Edwin Lutyens."],
+["Atal Tunnel","Atal Tunnel, Himachal Pradesh",["Chenab Bridge","Channel Tunnel","Gotthard Base Tunnel"],"One of the world's longest highway tunnels above 3,000 m altitude, under Rohtang Pass."],
+["Bhakra Dam","Bhakra Dam, Himachal Pradesh/Punjab",["Hirakud Dam","Hoover Dam","Three Gorges Dam"],"One of the highest gravity dams in Asia, built across the Sutlej River."],
+["Hirakud Dam","Hirakud Dam, Odisha",["Bhakra Dam","Hoover Dam","Three Gorges Dam"],"One of the longest earthen dams in the world, built across the Mahanadi River."],
+["Pamban Bridge","Pamban Bridge, Tamil Nadu",["Howrah Bridge","Chenab Bridge","Bandra–Worli Sea Link"],"India's first sea bridge, with a double-leaf bascule span that lifts for ships."],
+["Lotus Temple","Lotus Temple, Delhi",["Statue of Unity","Charminar","Qutub Minar"],"A Bahá'í House of Worship shaped from 27 free-standing marble 'petals'."],
+["Charminar","Charminar, Hyderabad",["Qutub Minar","India Gate","Lotus Temple"],"A 16th-century monument with four grand arches, built to mark the end of a plague."],
+["Delhi Metro","Delhi Metro Rail Network",["Konkan Railway","Mumbai Monorail","Kolkata Metro"],"One of the largest metro networks in the world, mixing elevated, at-grade, and underground sections."],
+["Signature Bridge (Delhi)","Signature Bridge, Delhi",["Vidyasagar Setu","Bandra–Worli Sea Link","Howrah Bridge"],"An asymmetric cable-stayed bridge over the Yamuna, held up by a single tilted pylon."],
+["Taj Mahal","Taj Mahal, Agra",["Charminar","Qutub Minar","Lotus Temple"],"An ivory-white marble mausoleum built on a raised platform with deep wells for foundation stability near the riverbank."],
+["Golden Gate Bridge","Golden Gate Bridge, USA",["Brooklyn Bridge","Sydney Harbour Bridge","Tower Bridge"],"An Art Deco suspension bridge in San Francisco, famous for its International Orange colour."],
+["Brooklyn Bridge","Brooklyn Bridge, USA",["Golden Gate Bridge","Tower Bridge","Sydney Harbour Bridge"],"Completed in 1883, one of the oldest steel-wire suspension bridges in the US."],
+["Sydney Harbour Bridge","Sydney Harbour Bridge, Australia",["Golden Gate Bridge","Tower Bridge","Brooklyn Bridge"],"The world's tallest steel arch bridge, affectionately nicknamed 'The Coathanger'."],
+["Burj Khalifa","Burj Khalifa, UAE",["Petronas Towers","Taipei 101","Shanghai Tower"],"The world's tallest building, using a 'buttressed core' structural system."],
+["Petronas Towers","Petronas Towers, Malaysia",["Burj Khalifa","Taipei 101","Shanghai Tower"],"Twin towers linked by a skybridge — once the tallest buildings in the world."],
+["Eiffel Tower","Eiffel Tower, France",["CN Tower","Burj Al Arab","Empire State Building"],"A wrought-iron lattice tower built for the 1889 World's Fair."],
+["Millau Viaduct","Millau Viaduct, France",["Danyang-Kunshan Grand Bridge","Confederation Bridge","Oresund Bridge"],"The tallest bridge in the world — one of its masts stands taller than the Eiffel Tower."],
+["Akashi Kaikyo Bridge","Akashi Kaikyō Bridge, Japan",["Golden Gate Bridge","Millau Viaduct","Confederation Bridge"],"One of the longest suspension bridges in the world, engineered to survive major earthquakes."],
+["Channel Tunnel","Channel Tunnel, UK–France",["Gotthard Base Tunnel","Atal Tunnel","Chenab Bridge"],"An undersea rail tunnel connecting England and France beneath the English Channel."],
+["Hoover Dam","Hoover Dam, USA",["Three Gorges Dam","Bhakra Dam","Hirakud Dam"],"An Art Deco arch-gravity dam on the Colorado River."],
+["Three Gorges Dam","Three Gorges Dam, China",["Hoover Dam","Bhakra Dam","Hirakud Dam"],"The world's largest power station by installed capacity, on the Yangtze River."],
+["Panama Canal","Panama Canal",["Suez Canal","Konkan Railway","Channel Tunnel"],"An artificial waterway using a system of locks to raise and lower ships between oceans."],
+["Taipei 101","Taipei 101, Taiwan",["Shanghai Tower","Petronas Towers","Burj Khalifa"],"Famous for its 660-tonne tuned mass damper that reduces sway from wind and quakes."],
+["Shanghai Tower","Shanghai Tower, China",["Taipei 101","Burj Khalifa","Petronas Towers"],"Its twisted, tapering facade cuts wind loads on the building by up to 24%."],
+["CN Tower","CN Tower, Canada",["Eiffel Tower","Burj Al Arab","Empire State Building"],"A concrete communications tower in Toronto, once the world's tallest freestanding structure."],
+["Tower Bridge","Tower Bridge, London",["Golden Gate Bridge","Brooklyn Bridge","Sydney Harbour Bridge"],"A combined bascule and suspension bridge over the Thames, beside the Tower of London."],
+["Confederation Bridge","Confederation Bridge, Canada",["Oresund Bridge","Millau Viaduct","Akashi Kaikyo Bridge"],"One of the world's longest bridges over ice-covered water, linking Prince Edward Island to the mainland."],
+["Oresund Bridge","Øresund Bridge, Denmark–Sweden",["Confederation Bridge","Millau Viaduct","Danyang-Kunshan Grand Bridge"],"A bridge that transitions into an undersea tunnel via an artificial island partway across."],
+["Danyang-Kunshan Grand Bridge","Danyang–Kunshan Grand Bridge, China",["Millau Viaduct","Confederation Bridge","Oresund Bridge"],"The longest bridge in the world at over 164 km, built for a high-speed rail line."],
+["Gotthard Base Tunnel","Gotthard Base Tunnel, Switzerland",["Channel Tunnel","Atal Tunnel","Chenab Bridge"],"The world's longest and deepest railway tunnel, running beneath the Swiss Alps."],
+["Leaning Tower of Pisa","Leaning Tower of Pisa, Italy",["Eiffel Tower","CN Tower","Qutub Minar"],"Its famous tilt comes from an inadequate foundation on soft, unstable ground."],
+["Great Wall of China","Great Wall of China",["Panama Canal","Three Gorges Dam","Taj Mahal"],"A vast series of fortifications built and rebuilt over centuries across northern China."],
+["Empire State Building","Empire State Building, USA",["Chrysler Building","CN Tower","Burj Al Arab"],"Built in about a year using a steel-frame structural system — a record pace for its era."],
+["Burj Al Arab","Burj Al Arab, UAE",["Burj Khalifa","Taipei 101","Shanghai Tower"],"Built on an artificial island, shaped like a billowing sail, supported on driven concrete piles."]
+];
+
+/* ======================================================================
+   QUIZ ENGINE
+   ====================================================================== */
+const TOTAL_TIME = 300; // seconds (5 min)
+
+/* ---- Google Sheets logging ----
+   1. Open script.google.com/home/my > New project, paste the Apps Script below,
+      then Deploy > New deployment > type "Web app" > Execute as "Me" > Who has
+      access "Anyone", then Deploy and copy the Web app URL into GOOGLE_SCRIPT_URL.
+
+   function doPost(e){
+     var sheet = SpreadsheetApp.openById('YOUR_SHEET_ID').getActiveSheet();
+     var d = JSON.parse(e.postData.contents);
+     sheet.appendRow([d.id, d.name, d.score, d.basic, d.picture, d.deep, d.timeUsed, d.timestamp]);
+     return ContentService.createTextOutput('OK');
+   }
+*/
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJMpM0nKFOCjrCDMMwA-zWeowJgUjrvssh6ug2cGsHoh5oOTFCLyriz2uUiaCQbHXJCQ/exec"; // <-- paste your deployed Apps Script Web App URL here
+
+function generateId(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID().slice(0,8).toUpperCase();
+  return 'Q' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random()*1000);
+}
+
+let quizQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let scoreByCat = { basic:0, picture:0, deep:0 };
+let timeLeft = TOTAL_TIME;
+let timerHandle = null;
+let answered = false;
+let playerName = '';
+let entryId = '';
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function buildQuizSet(){
+  const basicPick = shuffle(BASIC).slice(0,10).map(item => ({
+    cat:'basic', text:item[0], options:item[1], correctText:item[1][item[2]], explanation:item[3]
+  }));
+  const deepPick = shuffle(DEEP).slice(0,2).map(item => ({
+    cat:'deep', text:item[0], options:item[1], correctText:item[1][item[2]], explanation:item[3]
+  }));
+  const picturePick = shuffle(PICTURE).slice(0,8).map(item => {
+    const [wikiTitle, correctName, distractors, fact] = item;
+    const options = shuffle([correctName, ...distractors]);
+    return {
+      cat:'picture',
+      text:'Identify this structure:',
+      wikiTitle, options, correctText: correctName, explanation: fact,
+      imgUrl: null
+    };
+  });
+  return shuffle([...basicPick, ...deepPick, ...picturePick]);
+}
+
+async function fetchImage(title){
+  const controller = new AbortController();
+  const timeout = setTimeout(()=>controller.abort(), 4000);
+  try{
+    const res = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title.replace(/ /g,'_')), { signal: controller.signal });
+    clearTimeout(timeout);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data.originalimage && data.originalimage.source) || (data.thumbnail && data.thumbnail.source) || null;
+  }catch(e){
+    clearTimeout(timeout);
+    return null;
+  }
+}
+
+async function prefetchImages(questions){
+  const pictureQs = questions.filter(q => q.cat === 'picture');
+  await Promise.all(pictureQs.map(async q => {
+    q.imgUrl = await fetchImage(q.wikiTitle);
+  }));
+}
+
+/* ---------- DOM refs ---------- */
+const screenIntro = document.getElementById('screen-intro');
+const screenQuiz = document.getElementById('screen-quiz');
+const screenResult = document.getElementById('screen-result');
+const btnStart = document.getElementById('btn-start');
+const btnNext = document.getElementById('btn-next');
+const btnRestart = document.getElementById('btn-restart');
+const qIndexEl = document.getElementById('q-index');
+const qTagEl = document.getElementById('q-tag');
+const qTextEl = document.getElementById('q-text');
+const qOptionsEl = document.getElementById('q-options');
+const feedbackEl = document.getElementById('feedback');
+const nextRowEl = document.getElementById('next-row');
+const figureWrap = document.getElementById('figure-wrap');
+const tapeEl = document.getElementById('tape');
+const tapeFillEl = document.getElementById('tape-fill');
+const tapeLabelEl = document.getElementById('tape-label');
+const inputName = document.getElementById('input-name');
+const nameWarn = document.getElementById('name-warn');
+const entryIdEl = document.getElementById('entry-id');
+const syncStatusEl = document.getElementById('sync-status');
+const syncTextEl = document.getElementById('sync-text');
+
+btnStart.addEventListener('click', startQuiz);
+inputName.addEventListener('input', () => nameWarn.classList.remove('show'));
+inputName.addEventListener('keydown', (e) => { if(e.key === 'Enter') startQuiz(); });
+btnNext.addEventListener('click', () => {
+  currentIndex++;
+  if(currentIndex >= quizQuestions.length){ finishQuiz(); }
+  else { renderQuestion(); }
+});
+btnRestart.addEventListener('click', () => {
+  screenResult.classList.add('hidden');
+  screenIntro.classList.remove('hidden');
+});
+
+async function startQuiz(){
+  playerName = inputName.value.trim();
+  if(!playerName){
+    nameWarn.classList.add('show');
+    inputName.focus();
+    return;
+  }
+  nameWarn.classList.remove('show');
+  entryId = generateId();
+
+  btnStart.disabled = true;
+  btnStart.textContent = 'Preparing your sheet…';
+  quizQuestions = buildQuizSet();
+  await prefetchImages(quizQuestions);
+  btnStart.disabled = false;
+  btnStart.textContent = 'Start Quiz';
+
+  currentIndex = 0; score = 0; scoreByCat = {basic:0,picture:0,deep:0};
+  timeLeft = TOTAL_TIME;
+
+  screenIntro.classList.add('hidden');
+  screenQuiz.classList.remove('hidden');
+  updateTapeDisplay();
+  startTimer();
+  renderQuestion();
+}
+
+function startTimer(){
+  clearInterval(timerHandle);
+  timerHandle = setInterval(() => {
+    timeLeft--;
+    if(timeLeft <= 0){
+      timeLeft = 0;
+      updateTapeDisplay();
+      clearInterval(timerHandle);
+      finishQuiz();
+      return;
+    }
+    updateTapeDisplay();
+  }, 1000);
+}
+
+function updateTapeDisplay(){
+  const pct = Math.max(0, (timeLeft / TOTAL_TIME) * 100);
+  tapeFillEl.style.width = pct + '%';
+  const m = Math.floor(timeLeft/60);
+  const s = String(timeLeft % 60).padStart(2,'0');
+  tapeLabelEl.textContent = m + ':' + s;
+  tapeEl.classList.toggle('warn', timeLeft <= 30);
+}
+
+function catLabel(cat){
+  return cat === 'basic' ? 'BASIC' : cat === 'picture' ? 'PICTURE ID' : 'DEEP DIVE';
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = quizQuestions[currentIndex];
+  qIndexEl.textContent = String(currentIndex+1).padStart(2,'0');
+  qTagEl.textContent = catLabel(q.cat);
+  qTagEl.className = 'tag ' + q.cat;
+  qTextEl.textContent = q.text;
+  feedbackEl.className = 'feedback';
+  feedbackEl.innerHTML = '';
+  nextRowEl.classList.add('hidden');
+  qOptionsEl.innerHTML = '';
+  figureWrap.innerHTML = '';
+
+  if(q.cat === 'picture'){
+    const fig = document.createElement('div');
+    fig.className = 'figure';
+    if(q.imgUrl){
+      const img = document.createElement('img');
+      img.src = q.imgUrl;
+      img.alt = 'Structure to identify';
+      img.onerror = () => { fig.innerHTML = placeholderSkeleton(); };
+      fig.appendChild(img);
+    } else {
+      fig.innerHTML = placeholderSkeleton();
+    }
+    figureWrap.appendChild(fig);
+  }
+
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = '<span class="letter">'+letters[i]+'</span><span>'+opt+'</span>';
+    btn.addEventListener('click', () => selectOption(btn, opt, q));
+    qOptionsEl.appendChild(btn);
+  });
+}
+
+function placeholderSkeleton(){
+  return '<div class="skeleton"><svg viewBox="0 0 24 24" fill="none" stroke="#EDF2F4" stroke-width="1.5"><path d="M3 21h18M5 21V10l4-3 4 3v11M13 21V6l4-2 4 2v15" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Image unavailable — read the options</span></div>';
+}
+
+function selectOption(btn, opt, q){
+  if(answered) return;
+  answered = true;
+  const correct = opt === q.correctText;
+  if(correct){ score++; scoreByCat[q.cat]++; }
+
+  [...qOptionsEl.children].forEach(el => {
+    el.classList.add('locked');
+    const label = el.querySelector('span:last-child').textContent;
+    if(label === q.correctText) el.classList.add('correct');
+    else if(el === btn) el.classList.add('wrong');
+    else el.classList.add('dim');
+  });
+
+  feedbackEl.classList.add('show');
+  if(correct){
+    feedbackEl.innerHTML = '<b class="status-good">Correct!</b><span class="fact">'+q.explanation+'</span>';
+  } else {
+    feedbackEl.innerHTML = '<b class="status-bad">Not quite.</b> Correct answer: <b>'+q.correctText+'</b><span class="fact">'+q.explanation+'</span>';
+  }
+  nextRowEl.classList.remove('hidden');
+  btnNext.textContent = (currentIndex === quizQuestions.length-1) ? 'See Score →' : 'Next Question →';
+}
+
+function finishQuiz(){
+  clearInterval(timerHandle);
+  screenQuiz.classList.add('hidden');
+  screenResult.classList.remove('hidden');
+
+  document.getElementById('score-big').textContent = score + '/20';
+  const used = TOTAL_TIME - timeLeft;
+  const m = Math.floor(used/60), s = String(used%60).padStart(2,'0');
+  document.getElementById('score-time').textContent = 'Time used: ' + m + ':' + s;
+  document.getElementById('score-basic').textContent = scoreByCat.basic + '/10';
+  document.getElementById('score-picture').textContent = scoreByCat.picture + '/8';
+  document.getElementById('score-deep').textContent = scoreByCat.deep + '/2';
+  entryIdEl.textContent = 'Entry ID: ' + entryId;
+
+  let verdict;
+  if(score >= 17) verdict = "Structurally sound. You're ready for site.";
+  else if(score >= 12) verdict = "Solid foundation — a bit more reinforcement needed.";
+  else if(score >= 7) verdict = "Needs a redesign review before it goes to site.";
+  else verdict = "Back to the drawing board — but that's exactly what orientation is for.";
+  document.getElementById('verdict').textContent = verdict;
+
+  recordScore({
+    id: entryId,
+    name: playerName,
+    score: score,
+    basic: scoreByCat.basic,
+    picture: scoreByCat.picture,
+    deep: scoreByCat.deep,
+    timeUsed: m + ':' + s,
+    timestamp: new Date().toISOString()
+  });
+}
+
+async function recordScore(entry){
+  if(!GOOGLE_SCRIPT_URL){
+    syncStatusEl.className = 'sync-status err';
+    syncTextEl.textContent = 'Not connected to Google Sheets (see code comments to set up)';
+    return;
+  }
+  syncStatusEl.className = 'sync-status pending';
+  syncTextEl.textContent = 'Saving score…';
+  try{
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script web apps don't return CORS headers; we fire-and-forget
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(entry)
+    });
+    syncStatusEl.className = 'sync-status ok';
+    syncTextEl.textContent = 'Score saved to sheet';
+  }catch(e){
+    syncStatusEl.className = 'sync-status err';
+    syncTextEl.textContent = 'Could not reach the sheet — check your connection';
+  }
+}
+</script>
+</body>
+</html>
